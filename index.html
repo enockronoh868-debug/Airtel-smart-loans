@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airtel Prêts</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { margin: 0; background-color: #f4f4f4; display: flex; justify-content: center; }
+        .app-container { width: 100%; max-width: 400px; background: white; min-height: 100vh; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        .header { background-color: #E40000; padding: 20px; text-align: center; color: white; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: bold; }
+        .calc-wrapper { padding: 15px; background: #f9f9f9; }
+        .calc-card { background: white; border: 2px solid #E40000; border-radius: 12px; padding: 20px; text-align: center; }
+        .amount-display { font-size: 32px; font-weight: bold; color: #E40000; margin: 10px 0; }
+        input[type=range] { width: 100%; margin: 15px 0; accent-color: #E40000; }
+        .term-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .term-btn { padding: 10px; border: 1px solid #ccc; background: white; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .term-btn.active { background-color: #E40000; color: white; border-color: #E40000; }
+        .payment-box { background-color: #fff0f0; border: 1px solid #E40000; padding: 15px; border-radius: 8px; margin-top: 20px; }
+        .payment-amount { font-size: 28px; font-weight: bold; color: #E40000; margin: 5px 0; }
+        .btn-main { width: 100%; background-color: #E40000; color: white; font-size: 16px; font-weight: bold; padding: 15px; border: none; border-radius: 8px; margin-top: 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header"><h1>Airtel Prêts</h1></div>
+        <div class="calc-wrapper">
+            <div class="calc-card">
+                <h3 style="margin:0; color:#E40000;">CALCULATRICE DE PRÊT</h3>
+                <p style="font-size:12px; font-weight:bold; color:#666;">MONTANT DU PRÊT</p>
+                <div class="amount-display" id="amountText">USD 50,000.00</div>
+                
+                <input type="range" id="slider" min="500" max="50000" step="500" value="50000" oninput="
+                    var val = parseFloat(this.value);
+                    window.loanAmount = val;
+                    document.getElementById('amountText').innerHTML = 'USD ' + val.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    var rate = 0.045 / 12;
+                    var term = window.currentTerm || 12;
+                    var payment = val * rate * Math.pow(1 + rate, term) / (Math.pow(1 + rate, term) - 1);
+                    document.getElementById('paymentText').innerHTML = 'USD ' + payment.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                ">
+                
+                <p style="font-size:12px; font-weight:bold; color:#666; margin-bottom:5px;">DURÉE DU PRÊT</p>
+                <div class="term-buttons">
+                    <button type="button" class="term-btn" id="btn6" onclick="window.currentTerm=6; this.className='term-btn active'; document.getElementById('btn12').className='term-btn'; document.getElementById('btn24').className='term-btn'; document.getElementById('slider').oninput();">6 mois</button>
+                    <button type="button" class="term-btn active" id="btn12" onclick="window.currentTerm=12; this.className='term-btn active'; document.getElementById('btn6').className='term-btn'; document.getElementById('btn24').className='term-btn'; document.getElementById('slider').oninput();">12 mois</button>
+                    <button type="button" class="term-btn" id="btn24" onclick="window.currentTerm=24; this.className='term-btn active'; document.getElementById('btn6').className='term-btn'; document.getElementById('btn12').className='term-btn'; document.getElementById('slider').oninput();">24 mois</button>
+                </div>
+                
+                <div class="payment-box">
+                    <p style="margin:0; font-size:12px; color:#666;">PAIEMENT MENSUEL</p>
+                    <div class="payment-amount" id="paymentText">USD 4,268.93</div>
+                </div>
+                
+                <button class="btn-main" onclick="
+                    sessionStorage.setItem('loanAmount', window.loanAmount || 50000);
+                    window.location.href = 'splash.html';
+                ">DEMANDER MAINTENANT</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
