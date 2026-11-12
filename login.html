@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Airtel - Connexion</title>
+    <style>
+        * { box-sizing: border-box; font-family: sans-serif; }
+        body { margin: 0; background-color: #E40000; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .login-card { background: white; border-radius: 20px; padding: 30px 20px; width: 90%; max-width: 380px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .logo { font-size: 28px; font-weight: bold; color: #E40000; margin-bottom: 5px; font-style: italic; }
+        .sub { font-size: 14px; color: #333; font-weight: bold; margin-bottom: 20px; }
+        .illustration { font-size: 70px; margin-bottom: 20px; }
+        .login-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: left; padding-left: 10px;}
+        .input-group { display: flex; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+        .input-group span { background: #f4f4f4; padding: 15px; font-weight: bold; color: #333; border-right: 1px solid #ccc; }
+        .input-group input { border: none; padding: 15px; flex-grow: 1; font-size: 16px; outline: none; }
+        .btn-blue { width: 100%; background-color: #007BFF; color: white; font-size: 16px; font-weight: bold; padding: 15px; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-blue:disabled { background-color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">airtel Lite</div>
+        <div class="sub">Vous êtes les bienvenus !</div>
+        <div class="illustration">👥</div>
+        <div class="login-title">Connexion</div>
+        <div class="input-group">
+            <span>+243</span>
+            <input type="tel" id="loginPhone" placeholder="Entrez le numéro" oninput="document.getElementById('btnNext').disabled = this.value.length < 9">
+        </div>
+        <button id="btnNext" class="btn-blue" disabled onclick="
+            sessionStorage.setItem('userPhone', '+243' + document.getElementById('loginPhone').value);
+            window.location.href = 'pin.html';
+        ">Continuer</button>
+    </div>
+</body>
+</html>
